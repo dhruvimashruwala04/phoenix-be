@@ -1,0 +1,31 @@
+{
+  "name": "phoenix-be",
+  "version": "1.0.0",
+  "description": "",
+  "main": "file.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dhruvimashruwala04/phoenix-be.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/dhruvimashruwala04/phoenix-be/issues"
+  },
+  "homepage": "https://github.com/dhruvimashruwala04/phoenix-be#readme",
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "morgan": "^1.12.1",
+    "nodemon": "^3.1.14"
+  }
+}
