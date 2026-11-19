@@ -1,4 +1,5 @@
 const { pool } = require("../config/database");
+const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const AppError = require("../middleware/AppError");
 const { hashPassword, comparePassword } = require("../utils/password");
@@ -8,12 +9,12 @@ const createUser = async (req, res, next) => {
     const { name, email, password } = req.body;
     const hashedPassword = await hashPassword(password);
 
-    const result = await pool.query(
-      `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *`,
-      [name, email, hashedPassword],
-    );
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
 
-    const user = result.rows[0];
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN || "7d",
     });
@@ -24,7 +25,7 @@ const createUser = async (req, res, next) => {
       token,
     });
   } catch (error) {
-    if (error.code === "23505") {
+    if (error.name === "SequelizeUniqueConstraintError") {
       return next(new AppError("User already exists.", 409));
     }
     next(error);
@@ -35,15 +36,11 @@ const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const result = await pool.query(`SELECT * FROM users WHERE email = $1`, [
-      email,
-    ]);
+    const user = await User.findOne({ where: { email } });
 
-    if (result.rows.length === 0) {
-      return next(new AppError("Invalid credentials.", 401));
+    if (!user) {
+      return next(new AppError("User not found.", 404));
     }
-
-    const user = result.rows[0];
 
     const validPassword = await comparePassword(password, user.password);
     if (!validPassword) {
@@ -54,11 +51,14 @@ const loginUser = async (req, res, next) => {
       expiresIn: process.env.JWT_EXPIRES_IN || "7d",
     });
 
+    const userData = user.toJSON();
+    delete userData.password;
+
     res.status(200).json({
       success: true,
       message: "User logged in successfully.",
       token,
-      data: user,
+      data: userData,
     });
   } catch (error) {
     next(error);
